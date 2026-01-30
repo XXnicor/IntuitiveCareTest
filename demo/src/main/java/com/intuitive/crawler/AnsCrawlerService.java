@@ -21,9 +21,9 @@ public class AnsCrawlerService {
     /**
     *
     * Estrategia adotada :
-    * - Busca os anos em orderm descrecente (2025,2024,...)
-    * - Para cada ano busca os trimestres em ordem descrecente (4T2025,3T2025,...)
-    * - Retorna 1 arquvio .zip por trimestre
+    * - Busca os anos em ordem decrescente (2025,2024,...)
+    * - Para cada ano busca os trimestres em ordem decrescente (4T2025,3T2025,...)
+    * - Retorna 1 arquivo .zip por trimestre
     *
     * TRADE-OFF: Busca todos os anos/trimestres (eager loading).
     * Para N pequeno (~3), é mais simples que lazy loading.
@@ -46,12 +46,11 @@ public class AnsCrawlerService {
         
         List<String> result = new ArrayList<>();
         
-        //Conta a unidade de negócio (período de tempo)
-        int trimestersFound = 0;
+        int trimestersCount = 0;
         
         //Iterar anos (mais recentes primeiro)
         for (String yearUrl : yearUrls) {
-         if (trimestersFound >= count) {
+         if (trimestersCount >= count) {
             break;
          }
          
@@ -64,7 +63,7 @@ public class AnsCrawlerService {
          //Iterar trimestres (mais recentes primeiro)
         for (String trimesterUrl : trimesters) {
 
-            if (trimestersFound >= count) {
+            if (trimestersCount >= count) {
                 break;
             }
             
@@ -75,11 +74,10 @@ public class AnsCrawlerService {
             // Adicionar primeiro .zip (geralmente só tem 1 por trimestre)
             if (!zipUrls.isEmpty()) {
                 result.add(zipUrls.get(0));
-                //Só incrementa quando processamos tudo referente àquele trimestre.
-                trimestersFound++;
+                //Decisão: contamos apenas trimestres que tem arquivos .zip
+                trimestersCount++;
             }
          }
-
         }
         return result;
     }
