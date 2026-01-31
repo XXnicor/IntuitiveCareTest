@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /*
 * Parser de CSV das demonstrações contábeis da ANS.
@@ -23,12 +24,11 @@ import java.util.Set;
 * - adequado para CSVs SIMPLES (sem valores com ';' entre aspas).
 * - Limitação: Não suporta campos com escape (ex: "valor;com;vírgula").
 * - Refatoração futura: Migrar para CSVParser (Apache Commons) para casos complexos.
-*/
-
+ */
 public class CsvParserService {
 
     private static final Charset DEFAULT_CHARSET = StandardCharsets.ISO_8859_1;
-    
+
     /*
      * Le CSV e retorna apenas linhas que contenham keywords.
      *
@@ -36,10 +36,9 @@ public class CsvParserService {
      * @param keywords Palavras-chave para filtrar (case-insensitive)
      * @return Lista de mapas (chave = header normalizado, valor = célula)
      * @throws IOException Se erro ao ler arquivo
-    */
-    
+     */
     public List<Map<String, String>> parseAndFilter(Path csvFile, Set<String> keywords) throws IOException {
-        
+
         if (csvFile == null || !Files.exists(csvFile)) {
             throw new IllegalArgumentException("O arquivo CSV não existe: " + csvFile);
         }
@@ -51,7 +50,7 @@ public class CsvParserService {
         List<Map<String, String>> filteredRows = new java.util.ArrayList<>();
 
         try (BufferedReader reader = Files.newBufferedReader(csvFile, DEFAULT_CHARSET)) {
-            
+
             String headerLine = reader.readLine();
 
             if (headerLine == null) {
@@ -72,9 +71,19 @@ public class CsvParserService {
                     rowMap.put(normalizedHeader, cellValue);
                     // Verifica se a célula contém alguma keyword
                     for (String keyword : keywords) {
-                        if (cellValue.toLowerCase().contains(keyword.toLowerCase())) {
-                            containsKeyword = true;
-                            break;
+                        // tratar keywords como regex (case-insensitive). Ex: ".*" casa tudo
+                        try {
+                            Pattern p = Pattern.compile(keyword, Pattern.CASE_INSENSITIVE);
+                            if (p.matcher(cellValue).find()) {
+                                containsKeyword = true;
+                                break;
+                            }
+                        } catch (Exception e) {
+                            // em caso de regex inválida, fallback para contains simples
+                            if (cellValue.toLowerCase().contains(keyword.toLowerCase())) {
+                                containsKeyword = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -83,6 +92,6 @@ public class CsvParserService {
                 }
             }
             return filteredRows;
-            }
         }
+    }
 }
