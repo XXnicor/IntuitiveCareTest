@@ -80,16 +80,16 @@ public class DatabaseImportService {
         }
     }
 
-      /**
+    /**
      * Cria as tabelas no banco (executa schema.sql).
-     * 
+     *
      * @param schemaPath caminho para o arquivo schema.sql
      * @throws SQLException, IOException
      */
     public void createSchema(String schemaPath) throws SQLException, java.io.IOException {
-        
+
         String schemaSql = Files.readString(java.nio.file.Path.of(schemaPath));
-        
+
         try (Connection conn = DriverManager.getConnection(jdbcUrl, username, password)) {
             java.sql.Statement stmt = conn.createStatement();
 
@@ -101,25 +101,21 @@ public class DatabaseImportService {
                     stmt.execute(trimmed);
                     System.out.println("DDL executado: ");
                 }
+            }
         }
     }
-}
 
-/**
+    /**
      * Importa operadoras do CSV de cadastro.
-     * 
+     *
      * @param operadoras lista de Operadora (do DataEnricherService)
      * @throws SQLException
      */
     public void importOperadoras(List<DataEnricherService.Operadora> operadoras) throws SQLException {
         String sql = """
-            INSERT INTO operadoras (cnpj, nome_operadora) 
-            VALUES (?, ?)
-            ON DUPLICATE KEY UPDATE 
-            cnpj = VALUES(cnpj),
-            razao_social = VALUES(razao_social),
-            nome_fantasia = VALUES(nome_fantasia)
-                """;
+            MERGE INTO operadoras (cnpj, razao_social, nome_fantasia) KEY(cnpj)
+            VALUES (?, ?, ?)
+            """;
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(jdbcUrl, username, password);
@@ -132,6 +128,7 @@ public class DatabaseImportService {
                 for (DataEnricherService.Operadora operadora : operadoras) {
                     pstmt.setString(1, operadora.cnpj);
                     pstmt.setString(2, operadora.razaoSocial);
+                    pstmt.setString(3, operadora.nomeFantasia);
                     pstmt.addBatch();
 
                     if (++count % batchSize == 0) {
