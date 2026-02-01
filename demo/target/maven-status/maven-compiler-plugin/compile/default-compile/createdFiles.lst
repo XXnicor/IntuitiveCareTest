@@ -1,0 +1,17 @@
+com\intuitive\api\repository\OperadoraRepository.class
+com\intuitive\crawler\CsvWriterService.class
+com\intuitive\crawler\DataEnricherService$EnrichedRecord.class
+com\intuitive\crawler\DataEnricherService$Operadora.class
+com\intuitive\api\ApiApplication.class
+com\intuitive\crawler\AggregatorService$AggregatedRecord.class
+com\intuitive\crawler\AnsCrawlerService.class
+com\intuitive\crawler\Main.class
+com\intuitive\crawler\CsvSchemaMapper.class
+com\intuitive\api\controller\OperadoraController.class
+com\intuitive\crawler\DataEnricherService.class
+com\intuitive\crawler\AggregatorService.class
+com\intuitive\crawler\FileManagerService.class
+com\intuitive\crawler\CsvParserService.class
+com\intuitive\crawler\DatabaseImportService.class
+com\intuitive\api\dto\OperadoraDTO.class
+com\intuitive\api\repository\OperadoraRepository$EstatisticaContaDTO.class
