@@ -1,5 +1,5 @@
-C:\Users\nicolas\Documents\DesafioIntuitiveCare\demo\src\test\java\com\intuitive\crawler\AggregatorServiceTest.java
-C:\Users\nicolas\Documents\DesafioIntuitiveCare\demo\src\test\java\com\intuitive\crawler\CvvParserServiceTest.java
 C:\Users\nicolas\Documents\DesafioIntuitiveCare\demo\src\test\java\com\intuitive\crawler\DatabaseImportServiceTest.java
-C:\Users\nicolas\Documents\DesafioIntuitiveCare\demo\src\test\java\com\intuitive\crawler\DataEnricherServiceTest.java
 C:\Users\nicolas\Documents\DesafioIntuitiveCare\demo\src\test\java\com\intuitive\crawler\H2InMemorySqlValidationTest.java
+C:\Users\nicolas\Documents\DesafioIntuitiveCare\demo\src\test\java\com\intuitive\crawler\DataEnricherServiceTest.java
+C:\Users\nicolas\Documents\DesafioIntuitiveCare\demo\src\test\java\com\intuitive\crawler\CvvParserServiceTest.java
+C:\Users\nicolas\Documents\DesafioIntuitiveCare\demo\src\test\java\com\intuitive\crawler\AggregatorServiceTest.java

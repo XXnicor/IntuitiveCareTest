@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * REST Controller para endpoints de operadoras.
- * Trade-off: Controller direto sem Service Layer - Simplicidade para MVP.
- * Em produção, adicionar camada de serviço para lógica de negócio.
+ * REST Controller para endpoints de operadoras. Trade-off: Controller direto
+ * sem Service Layer - Simplicidade para MVP. Em produção, adicionar camada de
+ * serviço para lógica de negócio.
  */
 @RestController
 @RequestMapping("/api")
@@ -26,25 +26,39 @@ public class OperadoraController {
     }
 
     /**
-     * Lista operadoras com paginação.
-     * 
-     * GET /api/operadoras?page=1&limit=20
-     * 
+     * Lista operadoras com paginação e busca.
+     *
+     * GET /api/operadoras?page=1&limit=20&q=termo
+     *
      * @param page número da página (padrão: 1)
      * @param limit registros por página (padrão: 20)
+     * @param q termo de busca (opcional)
      * @return JSON com data, total e page
      */
     @GetMapping("/operadoras")
     public ResponseEntity<Map<String, Object>> listarOperadoras(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int limit
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(required = false) String q
     ) {
         // Validação básica
-        if (page < 1) page = 1;
-        if (limit < 1 || limit > 100) limit = 20;
+        if (page < 1) {
+            page = 1;
+        }
+        if (limit < 1 || limit > 100) {
+            limit = 20;
+        }
 
-        List<OperadoraDTO> operadoras = repository.findAllPaginado(page, limit);
-        int total = repository.countTotal();
+        List<OperadoraDTO> operadoras;
+        int total;
+
+        if (q != null && !q.trim().isEmpty()) {
+            operadoras = repository.findByQuery(q.trim(), page, limit);
+            total = repository.countByQuery(q.trim());
+        } else {
+            operadoras = repository.findAllPaginado(page, limit);
+            total = repository.countTotal();
+        }
 
         Map<String, Object> response = new HashMap<>();
         response.put("data", operadoras);
@@ -57,10 +71,48 @@ public class OperadoraController {
     }
 
     /**
+     * Busca operadora por CNPJ com histórico de despesas.
+     *
+     * GET /api/operadoras/{cnpj}
+     *
+     * @param cnpj CNPJ da operadora
+     * @return JSON com dados da operadora e histórico
+     */
+    @GetMapping("/operadoras/{cnpj}")
+    public ResponseEntity<OperadoraDTO> buscarOperadora(@PathVariable String cnpj) {
+        OperadoraDTO operadora = repository.findByCnpjWithHistory(cnpj);
+
+        if (operadora == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(operadora);
+    }
+
+    /**
+     * Busca detalhes completos da operadora incluindo histórico estruturado.
+     *
+     * GET /api/operadoras/{cnpj}/detalhes
+     *
+     * @param cnpj CNPJ da operadora
+     * @return JSON com dados cadastrais completos e histórico de despesas
+     */
+    @GetMapping("/operadoras/{cnpj}/detalhes")
+    public ResponseEntity<com.intuitive.api.dto.OperadoraDetalhadaDTO> buscarDetalhesOperadora(@PathVariable String cnpj) {
+        com.intuitive.api.dto.OperadoraDetalhadaDTO detalhes = repository.findDetalhesCompletos(cnpj);
+
+        if (detalhes == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(detalhes);
+    }
+
+    /**
      * Retorna estatísticas: Top 5 operadoras com maiores despesas.
-     * 
+     *
      * GET /api/estatisticas/top5
-     * 
+     *
      * @return JSON com lista das top 5
      */
     @GetMapping("/estatisticas/top5")
@@ -76,9 +128,9 @@ public class OperadoraController {
 
     /**
      * Retorna média de gastos por código de conta.
-     * 
+     *
      * GET /api/estatisticas/media-conta
-     * 
+     *
      * @return JSON com estatísticas por conta
      */
     @GetMapping("/estatisticas/media-conta")
@@ -94,7 +146,7 @@ public class OperadoraController {
 
     /**
      * Health check da API.
-     * 
+     *
      * GET /api/health
      */
     @GetMapping("/health")

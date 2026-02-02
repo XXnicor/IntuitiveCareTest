@@ -44,8 +44,11 @@ public class DatabaseImportService {
             conn.setAutoCommit(false);
 
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                int batchSize = 1000;
+                int batchSize = 5000;
                 int count = 0;
+                int totalRecords = records.size();
+
+                System.out.println("Importando " + totalRecords + " registros agregados...");
 
                 for (AggregatorService.AggregatedRecord record : records) {
                     pstmt.setString(1, record.cnpjOperadora);
@@ -56,11 +59,16 @@ public class DatabaseImportService {
                     if (++count % batchSize == 0) {
                         pstmt.executeBatch();
                         pstmt.clearBatch();
+                        System.out.printf("  [%d/%d] %.1f%% concluído%n", count, totalRecords, (count * 100.0 / totalRecords));
                     }
                 }
 
                 // Executa o restante
-                pstmt.executeBatch();
+                if (count % batchSize != 0) {
+                    pstmt.executeBatch();
+                }
+
+                System.out.printf("✓ %d registros importados com sucesso%n", count);
             }
 
             conn.commit();
@@ -112,9 +120,13 @@ public class DatabaseImportService {
      * @throws SQLException
      */
     public void importOperadoras(List<DataEnricherService.Operadora> operadoras) throws SQLException {
+        // MySQL usa INSERT ... ON DUPLICATE KEY UPDATE em vez de MERGE
         String sql = """
-            MERGE INTO operadoras (cnpj, razao_social, nome_fantasia) KEY(cnpj)
-            VALUES (?, ?, ?)
+            INSERT INTO operadoras (cnpj, razao_social, nome_fantasia, uf, modalidade)
+            VALUES (?, ?, ?, '', '')
+            ON DUPLICATE KEY UPDATE
+                razao_social = VALUES(razao_social),
+                nome_fantasia = VALUES(nome_fantasia)
             """;
         Connection conn = null;
         try {
@@ -124,21 +136,31 @@ public class DatabaseImportService {
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 int batchSize = 1000;
                 int count = 0;
+                int totalOperadoras = operadoras.size();
 
                 for (DataEnricherService.Operadora operadora : operadoras) {
+                    // Pular registros com CNPJ vazio
+                    if (operadora.cnpj == null || operadora.cnpj.trim().isEmpty()) {
+                        continue;
+                    }
+
                     pstmt.setString(1, operadora.cnpj);
-                    pstmt.setString(2, operadora.razaoSocial);
-                    pstmt.setString(3, operadora.nomeFantasia);
+                    pstmt.setString(2, operadora.razaoSocial != null ? operadora.razaoSocial : "");
+                    pstmt.setString(3, operadora.nomeFantasia != null ? operadora.nomeFantasia : "");
                     pstmt.addBatch();
 
                     if (++count % batchSize == 0) {
                         pstmt.executeBatch();
                         pstmt.clearBatch();
+                        System.out.print(".");
                     }
                 }
 
                 // Executa o restante
-                pstmt.executeBatch();
+                if (count % batchSize != 0) {
+                    pstmt.executeBatch();
+                }
+                System.out.println(" ✓ " + count + " operadoras processadas");
             }
 
             conn.commit();

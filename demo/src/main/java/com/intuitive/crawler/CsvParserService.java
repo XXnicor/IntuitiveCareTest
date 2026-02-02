@@ -58,6 +58,11 @@ public class CsvParserService {
             }
             String[] headers = headerLine.split(";");
 
+            // Remove aspas dos headers para normalização
+            for (int i = 0; i < headers.length; i++) {
+                headers[i] = headers[i].trim().replaceAll("^\"|\"$", "");
+            }
+
             String line;
 
             while ((line = reader.readLine()) != null) {
@@ -67,7 +72,7 @@ public class CsvParserService {
 
                 for (int i = 0; i < headers.length && i < cells.length; i++) {
                     String normalizedHeader = headers[i].trim().toUpperCase();
-                    String cellValue = cells[i].trim();
+                    String cellValue = cells[i].trim().replaceAll("^\"|\"$", ""); // Remove aspas
                     rowMap.put(normalizedHeader, cellValue);
                     // Verifica se a célula contém alguma keyword
                     for (String keyword : keywords) {

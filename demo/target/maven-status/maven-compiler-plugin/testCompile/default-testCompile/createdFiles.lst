@@ -1,0 +1,5 @@
+com\intuitive\crawler\CvvParserServiceTest.class
+com\intuitive\crawler\DatabaseImportServiceTest.class
+com\intuitive\crawler\H2InMemorySqlValidationTest.class
+com\intuitive\crawler\AggregatorServiceTest.class
+com\intuitive\crawler\DataEnricherServiceTest.class
